@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum BedType {
+  SINGLE
+  DOUBLE
+}
+
+enum HostelGender {
+  MALE
+  FEMALE
+  MIXED
+}
+
+model User {
+  id          String    @id @default(uuid())
+  email       String    @unique
+  password    String
+  role        Role      @default(STUDENT)
+  firstName   String
+  lastName    String
+  studentId   String?   @unique
+  phone       String
+  course      String?
+  yearOfStudy Int?
+  isVerified  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookings    Booking[]
+
+  @@map("users")
+}
+
+model Hostel {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  address     String
+  gender      HostelGender @default(MIXED)
+  imageUrl    String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  rooms       Room[]
+
+  @@map("hostels")
+}
+
+model Room {
+  id         String   @id @default(uuid())
+  hostelId   String
+  hostel     Hostel   @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  roomNumber String
+  floor      Int      @default(1)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  beds       Bed[]
+
+  @@unique([hostelId, roomNumber])
+  @@map("rooms")
+}
+
+model Bed {
+  id               String    @id @default(uuid())
+  roomId           String
+  room             Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  bedNumber        String
+  type             BedType   @default(SINGLE)
+  pricePerSemester Decimal   @db.Decimal(10, 2)
+  isAvailable      Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  bookings         Booking[]
+
+  @@unique([roomId, bedNumber])
+  @@map("beds")
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  bedId       String
+  bed         Bed           @relation(fields: [bedId], references: [id])
+  checkIn     DateTime
+  checkOut    DateTime
+  semester    String
+  status      BookingStatus @default(PENDING)
+  totalAmount Decimal       @db.Decimal(10, 2)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  payments    Payment[]
+
+  @@map("bookings")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  bookingId       String
+  booking         Booking       @relation(fields: [bookingId], references: [id])
+  amount          Decimal       @db.Decimal(10, 2)
+  mpesaCheckoutId String?       @unique
+  mpesaReceiptNo  String?
+  phoneNumber     String
+  status          PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@map("payments")
+}
