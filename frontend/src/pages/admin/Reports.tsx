@@ -76,7 +76,7 @@ export default function AdminReports() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}K`} />
-              <Tooltip formatter={(v: number) => `KES ${v.toLocaleString()}`} />
+              <Tooltip formatter={(v) => `KES ${Number(v).toLocaleString()}`} />
               <Bar dataKey="revenue" fill="#A0002A" radius={[4, 4, 0, 0]} name="Revenue" />
             </BarChart>
           </ResponsiveContainer>

@@ -52,6 +52,7 @@ export const bedSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
+export type RegisterFormInput = z.input<typeof registerSchema>
 export type BookingInput = z.infer<typeof bookingSchema>
 export type MpesaPayInput = z.infer<typeof mpesaPaySchema>
 export type HostelInput = z.infer<typeof hostelSchema>

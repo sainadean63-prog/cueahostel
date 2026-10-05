@@ -24,7 +24,7 @@ type RoomInput = z.infer<typeof roomSchema>
 
 function AddRoomDialog({ hostelId }: { hostelId: string }) {
   const [open, setOpen] = useState(false)
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<RoomInput>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<z.input<typeof roomSchema>, unknown, RoomInput>({
     resolver: zodResolver(roomSchema),
     defaultValues: { floor: 1 },
   })
@@ -58,7 +58,7 @@ function AddRoomDialog({ hostelId }: { hostelId: string }) {
 
 function AddBedDialog({ roomId, hostelId }: { roomId: string; hostelId: string }) {
   const [open, setOpen] = useState(false)
-  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<BedInput>({
+  const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<z.input<typeof bedSchema>, unknown, BedInput>({
     resolver: zodResolver(bedSchema),
   })
   const { mutate, isPending } = useAddBed(roomId, hostelId, () => { setOpen(false); reset() })

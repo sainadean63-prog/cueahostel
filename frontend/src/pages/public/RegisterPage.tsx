@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/hooks/useAuth'
-import { registerSchema, type RegisterInput } from '@/lib/schemas'
+import { registerSchema, type RegisterInput, type RegisterFormInput } from '@/lib/schemas'
 
 export default function RegisterPage() {
   const { register: registerUser, registerPending } = useAuth()
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterInput>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterFormInput, unknown, RegisterInput>({
     resolver: zodResolver(registerSchema),
   })
 
