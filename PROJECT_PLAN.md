@@ -699,7 +699,8 @@ MPESA_CONSUMER_KEY=
 MPESA_CONSUMER_SECRET=
 MPESA_SHORTCODE=
 MPESA_PASSKEY=
-MPESA_ENVIRONMENT=sandbox   # change to "production" for live
+MPESA_ENVIRONMENT=production   # real charges; use sandbox when testing
+MPESA_CALLBACK_URL=https://deansaina.kevinkoech.com/api/v1/payments/mpesa/callback
 
 # Email
 SMTP_HOST=smtp.gmail.com
@@ -712,6 +713,11 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
+
+Production M-PESA payments require active Daraja production credentials, the correct
+PayBill shortcode/passkey, and the public HTTPS callback URL above. Never commit
+credentials. The live app sends an STK prompt to the entered phone number and can
+charge the account when the customer authorizes it with their M-PESA PIN.
 
 ### Docker Compose (dev)
 

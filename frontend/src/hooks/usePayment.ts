@@ -13,34 +13,31 @@ export function useMpesaPay(bookingId: string) {
     onSuccess: async ({ checkoutRequestId }) => {
       toast.success('Check your phone for the M-PESA prompt')
       setPolling(true)
-      // Poll every 5 s for up to 60 s
-      let attempts = 0
-      const interval = setInterval(async () => {
-        attempts++
+      // Safaricom callbacks can take longer than one minute on live networks.
+      for (let attempts = 0; attempts < 60; attempts++) {
+        await new Promise((resolve) => window.setTimeout(resolve, 5000))
         try {
           const payment = await paymentService.pollPaymentStatus(checkoutRequestId)
           if (payment.status === 'SUCCESS') {
-            clearInterval(interval)
             setPolling(false)
             setPaid(true)
             qc.invalidateQueries({ queryKey: ['bookings'] })
             toast.success('Payment confirmed!')
+            return
           } else if (payment.status === 'FAILED') {
-            clearInterval(interval)
             setPolling(false)
             toast.error('Payment failed. Please try again.')
+            return
           }
         } catch {
           // keep polling
         }
-        if (attempts >= 12) {
-          clearInterval(interval)
-          setPolling(false)
-          toast.error('Payment timed out. Check your booking status.')
-        }
-      }, 5000)
+      }
+      setPolling(false)
+      toast.error('No confirmation received yet. Check your booking status before trying again.')
     },
-    onError: () => toast.error('Failed to initiate payment'),
+    onError: (error: { response?: { data?: { message?: string } } }) =>
+      toast.error(error.response?.data?.message ?? 'Failed to start M-PESA payment'),
   })
 
   return { pay: mutation.mutate, pending: mutation.isPending, polling, paid }

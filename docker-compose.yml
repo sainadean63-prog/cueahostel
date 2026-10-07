@@ -17,8 +17,8 @@ services:
       MPESA_CONSUMER_SECRET: ${MPESA_CONSUMER_SECRET:-}
       MPESA_SHORTCODE: ${MPESA_SHORTCODE:-}
       MPESA_PASSKEY: ${MPESA_PASSKEY:-}
-      MPESA_ENVIRONMENT: ${MPESA_ENVIRONMENT:-sandbox}
-      MPESA_CALLBACK_URL: ${MPESA_CALLBACK_URL:-}
+      MPESA_ENVIRONMENT: ${MPESA_ENVIRONMENT:-production}
+      MPESA_CALLBACK_URL: ${MPESA_CALLBACK_URL:-https://deansaina.kevinkoech.com/api/v1/payments/mpesa/callback}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
