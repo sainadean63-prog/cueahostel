@@ -1,6 +1,6 @@
 import api from './api'
 import type { AuthResponse, User } from '@/types'
-import type { LoginInput, RegisterInput } from '@/lib/schemas'
+import type { ForgotPasswordInput, LoginInput, RegisterInput, ResetPasswordInput } from '@/lib/schemas'
 
 export const authService = {
   async login(data: LoginInput): Promise<AuthResponse> {
@@ -12,6 +12,21 @@ export const authService = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword: _, ...payload } = data
     const res = await api.post('/auth/register', payload)
+    return res.data
+  },
+
+  async forgotPassword(data: ForgotPasswordInput): Promise<{ message: string }> {
+    const res = await api.post('/auth/forgot-password', data)
+    return res.data
+  },
+
+  async resetPassword(token: string, data: ResetPasswordInput): Promise<{ message: string }> {
+    const res = await api.post('/auth/reset-password', { token, password: data.password })
+    return res.data
+  },
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    const res = await api.get('/auth/verify-email', { params: { token } })
     return res.data
   },
 

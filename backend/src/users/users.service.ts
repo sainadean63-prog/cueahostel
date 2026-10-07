@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
@@ -14,6 +14,9 @@ export class UsersService {
   }
 
   async updateMe(userId: string, dto: UpdateUserDto) {
+    const existing = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!existing) throw new NotFoundException('User not found');
+    this.validateProgramme(dto.programType ?? existing.programType, dto.yearOfStudy ?? existing.yearOfStudy);
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: dto,
@@ -32,7 +35,7 @@ export class UsersService {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true, email: true, role: true, firstName: true, lastName: true,
-          studentId: true, phone: true, course: true, yearOfStudy: true,
+          studentId: true, phone: true, course: true, programType: true, yearOfStudy: true,
           isVerified: true, isActive: true, createdAt: true,
         },
       }),
@@ -44,9 +47,17 @@ export class UsersService {
   async updateById(userId: string, dto: UpdateUserDto) {
     const exists = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!exists) throw new NotFoundException('User not found');
+    this.validateProgramme(dto.programType ?? exists.programType, dto.yearOfStudy ?? exists.yearOfStudy);
     const user = await this.prisma.user.update({ where: { id: userId }, data: dto });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safe } = user;
     return safe;
+  }
+
+  private validateProgramme(programType?: string | null, yearOfStudy?: number | null) {
+    const maximumYear = programType === 'DIPLOMA' ? 2 : programType === 'DEGREE' ? 4 : undefined;
+    if (maximumYear && yearOfStudy && yearOfStudy > maximumYear) {
+      throw new BadRequestException('Year of study is outside the selected programme duration');
+    }
   }
 }

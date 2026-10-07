@@ -13,6 +13,7 @@ export interface User {
   studentId?: string
   phone: string
   course?: string
+  programType?: 'DIPLOMA' | 'DEGREE'
   yearOfStudy?: number
   isVerified: boolean
   isActive: boolean

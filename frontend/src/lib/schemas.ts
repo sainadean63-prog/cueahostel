@@ -7,15 +7,34 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters'),
-    lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+    firstName: z.string().trim().min(2, 'First name must be at least 2 characters').regex(/^[A-Za-z][A-Za-z\s'-]*$/, 'Use letters only'),
+    lastName: z.string().trim().min(2, 'Last name must be at least 2 characters').regex(/^[A-Za-z][A-Za-z\s'-]*$/, 'Use letters only'),
     email: z.string().email('Invalid email address'),
-    studentId: z.string().min(4, 'Student ID is required'),
+    studentId: z.string().regex(/^\d{4,20}$/, 'Student ID must contain 4 to 20 digits'),
     phone: z
       .string()
       .regex(/^(\+254|0)[17]\d{8}$/, 'Enter a valid Kenyan phone number'),
     course: z.string().min(2, 'Course is required'),
-    yearOfStudy: z.coerce.number().min(1).max(6),
+    programType: z.enum(['DIPLOMA', 'DEGREE'], { message: 'Select a programme type' }),
+    yearOfStudy: z.coerce.number().int().min(1).max(4),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.yearOfStudy <= (d.programType === 'DIPLOMA' ? 2 : 4), {
+    message: 'Select a year available for this programme',
+    path: ['yearOfStudy'],
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+})
+
+export const resetPasswordSchema = z
+  .object({
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
   })
@@ -53,6 +72,8 @@ export const bedSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type RegisterFormInput = z.input<typeof registerSchema>
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type BookingInput = z.infer<typeof bookingSchema>
 export type MpesaPayInput = z.infer<typeof mpesaPaySchema>
 export type HostelInput = z.infer<typeof hostelSchema>

@@ -13,10 +13,15 @@ import api from '@/services/api'
 import { getInitials } from '@/lib/utils'
 
 const profileSchema = z.object({
-  firstName: z.string().min(2),
-  lastName: z.string().min(2),
+  firstName: z.string().trim().min(2).regex(/^[A-Za-z][A-Za-z\s'-]*$/, 'Use letters only'),
+  lastName: z.string().trim().min(2).regex(/^[A-Za-z][A-Za-z\s'-]*$/, 'Use letters only'),
   phone: z.string().regex(/^(\+254|0)[17]\d{8}$/, 'Invalid phone number'),
   course: z.string().optional(),
+  programType: z.enum(['DIPLOMA', 'DEGREE']).optional(),
+  yearOfStudy: z.number().int().min(1).max(4).optional(),
+}).refine((data) => !data.programType || !data.yearOfStudy || data.yearOfStudy <= (data.programType === 'DIPLOMA' ? 2 : 4), {
+  message: 'Select a year available for this programme',
+  path: ['yearOfStudy'],
 })
 
 type ProfileInput = z.infer<typeof profileSchema>
@@ -25,15 +30,18 @@ export default function StudentProfile() {
   const { user, setAuth, accessToken } = useAuthStore()
   const qc = useQueryClient()
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ProfileInput>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
       phone: user?.phone ?? '',
       course: user?.course ?? '',
+      programType: user?.programType,
+      yearOfStudy: user?.yearOfStudy,
     },
   })
+  const programType = watch('programType')
 
   const mutation = useMutation({
     mutationFn: (data: ProfileInput) => api.patch('/users/me', data).then((r) => r.data),
@@ -81,8 +89,45 @@ export default function StudentProfile() {
               {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
             </div>
             <div className="space-y-1">
-              <Label>Course</Label>
+              <Label>Course name</Label>
               <Input {...register('course')} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Programme Type</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={programType ?? ''}
+                  onChange={(event) => {
+                    const value = event.target.value as 'DIPLOMA' | 'DEGREE' | ''
+                    setValue('programType', value || undefined, { shouldValidate: true, shouldDirty: true })
+                    const maxYear = value === 'DIPLOMA' ? 2 : 4
+                    const currentYear = watch('yearOfStudy')
+                    if (currentYear && currentYear > maxYear) {
+                      setValue('yearOfStudy', maxYear, { shouldValidate: true, shouldDirty: true })
+                    }
+                  }}
+                >
+                  <option value="">Select programme</option>
+                  <option value="DIPLOMA">Diploma (2 years)</option>
+                  <option value="DEGREE">Degree (4 years)</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label>Year of Study</Label>
+                <select
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50"
+                  value={watch('yearOfStudy') ?? ''}
+                  disabled={!programType}
+                  onChange={(event) => setValue('yearOfStudy', Number(event.target.value), { shouldValidate: true, shouldDirty: true })}
+                >
+                  <option value="">Select year</option>
+                  {(programType === 'DIPLOMA' ? [1, 2] : programType === 'DEGREE' ? [1, 2, 3, 4] : []).map((year) => (
+                    <option key={year} value={year}>Year {year}</option>
+                  ))}
+                </select>
+                {errors.yearOfStudy && <p className="text-xs text-destructive">{errors.yearOfStudy.message}</p>}
+              </div>
             </div>
             <div className="space-y-1">
               <Label>Student ID</Label>

@@ -12,9 +12,12 @@ import { registerSchema, type RegisterInput, type RegisterFormInput } from '@/li
 
 export default function RegisterPage() {
   const { register: registerUser, registerPending } = useAuth()
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterFormInput, unknown, RegisterInput>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<RegisterFormInput, unknown, RegisterInput>({
     resolver: zodResolver(registerSchema),
   })
+  const selectedYear = watch('yearOfStudy')
+  const programType = watch('programType')
+  const availableYears = programType === 'DIPLOMA' ? [1, 2] : programType === 'DEGREE' ? [1, 2, 3, 4] : []
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-10">
@@ -51,7 +54,7 @@ export default function RegisterPage() {
 
               <div className="space-y-1">
                 <Label>Student ID</Label>
-                <Input placeholder="e.g. CUEA/2024/001" {...register('studentId')} />
+                <Input placeholder="Numbers only" inputMode="numeric" {...register('studentId')} />
                 {errors.studentId && <p className="text-xs text-destructive">{errors.studentId.message}</p>}
               </div>
 
@@ -67,21 +70,43 @@ export default function RegisterPage() {
                 {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
               </div>
 
+              <div className="space-y-1">
+                <Label>Course</Label>
+                <Input placeholder="e.g. Computer Science" {...register('course')} />
+                {errors.course && <p className="text-xs text-destructive">{errors.course.message}</p>}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label>Course</Label>
-                  <Input placeholder="BSc Computer Science" {...register('course')} />
-                  {errors.course && <p className="text-xs text-destructive">{errors.course.message}</p>}
+                  <Label>Programme Type</Label>
+                  <Select
+                    value={programType}
+                    onValueChange={(value: 'DIPLOMA' | 'DEGREE') => {
+                      setValue('programType', value, { shouldValidate: true, shouldDirty: true })
+                      const maxYear = value === 'DIPLOMA' ? 2 : 4
+                      if (typeof selectedYear === 'number' && selectedYear > maxYear) {
+                        setValue('yearOfStudy', maxYear, { shouldValidate: true, shouldDirty: true })
+                      }
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select programme" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="DIPLOMA">Diploma (2 years)</SelectItem>
+                      <SelectItem value="DEGREE">Degree (4 years)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.programType && <p className="text-xs text-destructive">{errors.programType.message}</p>}
                 </div>
                 <div className="space-y-1">
                   <Label>Year of Study</Label>
-                  <Select onValueChange={(v) => setValue('yearOfStudy', parseInt(v))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Year" />
-                    </SelectTrigger>
+                  <Select
+                    value={selectedYear !== undefined ? String(selectedYear) : undefined}
+                    disabled={!programType}
+                    onValueChange={(value) => setValue('yearOfStudy', Number(value), { shouldValidate: true, shouldDirty: true })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
                     <SelectContent>
-                      {[1, 2, 3, 4, 5, 6].map((y) => (
-                        <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={String(year)}>Year {year}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

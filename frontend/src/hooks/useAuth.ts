@@ -18,13 +18,14 @@ export function useAuth() {
       if (user.role === 'ADMIN') navigate('/admin/dashboard')
       else navigate('/student/dashboard')
     },
-    onError: () => toast.error('Invalid email or password'),
+    onError: (e: { response?: { data?: { message?: string } } }) =>
+      toast.error(e.response?.data?.message ?? 'Invalid email or password'),
   })
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterInput) => authService.register(data),
     onSuccess: () => {
-      toast.success('Account created! Check your email to verify.')
+      toast.success('Account created. Check your email for the verification link.')
       navigate('/login')
     },
     onError: (e: { response?: { data?: { message?: string } } }) =>

@@ -10,6 +10,9 @@ import HostelsPage from '@/pages/public/HostelsPage'
 import HostelDetailPage from '@/pages/public/HostelDetailPage'
 import LoginPage from '@/pages/public/LoginPage'
 import RegisterPage from '@/pages/public/RegisterPage'
+import ForgotPasswordPage from '@/pages/public/ForgotPasswordPage'
+import ResetPasswordPage from '@/pages/public/ResetPasswordPage'
+import VerifyEmailPage from '@/pages/public/VerifyEmailPage'
 
 import StudentDashboard from '@/pages/student/Dashboard'
 import StudentBookings from '@/pages/student/Bookings'
@@ -41,6 +44,9 @@ export const router = createBrowserRouter([
       { path: '/hostels/:id', element: <HostelDetailPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/verify-email', element: <VerifyEmailPage /> },
     ],
   },
   {

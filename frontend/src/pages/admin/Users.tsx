@@ -1,4 +1,5 @@
 import { Users as UsersIcon } from 'lucide-react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Card, CardContent } from '@/components/ui/card'
@@ -10,9 +11,11 @@ import { Spinner } from '@/components/ui/spinner'
 
 export default function AdminUsers() {
   const qc = useQueryClient()
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: () => adminService.getUsers(),
+  const [page, setPage] = useState(1)
+  const limit = 20
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['admin', 'users', page],
+    queryFn: () => adminService.getUsers({ page, limit }),
   })
 
   const toggleMutation = useMutation({
@@ -26,13 +29,24 @@ export default function AdminUsers() {
   })
 
   const users = data?.data ?? []
+  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / limit))
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+        <p className="text-sm text-muted-foreground">{data?.total ?? 0} registered users</p>
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-20"><Spinner className="text-cuea-primary h-8 w-8" /></div>
+      ) : isError ? (
+        <Card>
+          <CardContent className="py-8 text-center space-y-3">
+            <p className="text-sm text-destructive">Could not load users. Check the connection and try again.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+          </CardContent>
+        </Card>
       ) : users.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
@@ -57,10 +71,24 @@ export default function AdminUsers() {
                       </Badge>
                     </p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
-                    {user.studentId && <p className="text-xs text-muted-foreground">{user.studentId}</p>}
+                    <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                      {user.studentId && <p>Student ID: {user.studentId}</p>}
+                      {user.phone && <p>Phone: {user.phone}</p>}
+                      <p>Registered: {new Date(user.createdAt).toLocaleDateString()}</p>
+                      {(user.course || user.programType || user.yearOfStudy) && (
+                        <p>
+                          Programme: {user.course ?? 'Not provided'}
+                          {user.programType ? ` (${user.programType.toLowerCase()})` : ''}
+                          {user.yearOfStudy ? `, Year ${user.yearOfStudy}` : ''}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
+                  <Badge variant={user.isVerified ? 'success' : 'warning'}>
+                    {user.isVerified ? 'Email verified' : 'Email not verified'}
+                  </Badge>
                   <Badge variant={user.isActive ? 'success' : 'destructive'}>
                     {user.isActive ? 'Active' : 'Inactive'}
                   </Badge>
@@ -78,6 +106,19 @@ export default function AdminUsers() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+      {!isLoading && !isError && data && data.total > limit && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)}>
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>

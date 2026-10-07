@@ -46,8 +46,13 @@ model User {
   studentId   String?   @unique
   phone       String
   course      String?
+  programType String?
   yearOfStudy Int?
   isVerified  Boolean   @default(false)
+  verificationTokenHash String?
+  verificationTokenExpiresAt DateTime?
+  passwordResetTokenHash String?
+  passwordResetTokenExpiresAt DateTime?
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
